@@ -25,7 +25,7 @@ public class SRBack {
 			"http://www.reddit.com/r/SUBREDDIT/about/stylesheet.json"; 
 	
 	private static final Pattern IMAGE_RE = Pattern.compile(
-			"\"url\": \"(.+?\\.(png|jpg|bmp|tiff|jpeg))\", \"link\": \"(.+?)\", \"name\": \"(.+?)\"");
+			"\"url\": \"(.+?\\.(png|jpg))\", \"link\": \"(.+?)\", \"name\": \"(.+?)\"");
 	
 	public static void main(String[] args) {
 		File baseDir = new File("C:\\Users\\Pokechu22\\Pictures\\SS");
