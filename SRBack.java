@@ -8,68 +8,14 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-//BACKUP TOOL TO SAVE SUBREDDIT IMAGES JUST IN CASE.
-//BECAUSE /r/SPACE WAS HACKED AND IMAGES WERE REMOVED
-
+/**
+ * Backs up the stylesheet and images for subreddits.
+ * 
+ * @author Pokechu22
+ */
 public class SRBack {
 	public static final String[] SUBREDDITS = {
-		"askscience",
-		"circlejerk",
-		"punchablefaces",
-		"circlebroke",
-		"openbroke",
-		"circlebroke2",
-		"Buttcoin",
-		"nonono",
-		"actualmoney",
-		"circlebrokediscussion",
-		"JerkTalkLobby",
-		"AntiMemeWatch",
-		"metaredditpics",
-		"antiantiatheismwatch",
-		"metacancerjerk",
-		"LNMNMMMC",
-		"metamoderatorjerk",
-		"Classic_Circlebroke",
-		"shitposting",
-		"BlackKnightNews",
-		"CircleBrokeMilitia",
-		"AtheistBuddhism",
-		"EURICA",
-		"RedditStreetTeam",
-		"spacerebooted",
-		"ILOVEBORNHUETTER",
-		"circlebrokerebooted",
-		"circlejork",
-		"atheistmountaindew",
-		"calband",
-		"brigador",
-		"CircleTelevision",
-		"subredditrequest",
-		"SubredditmonTrading",
-		"cjmodproblems",
-		"bestof2013rebooted",
-		"CirclebrokeOverlords",
-		"Matador",
-		"reportthehammers",
-		"whataboutwhataboutsrs",
-		"metamythos",
-		"AntiShibe",
-		"Charmemer",
-		"ytknowsflanclub",
-		"circlesteak",
-		"circlebrokes",
-		"antishibewatch",
-		"charmemeleon",
-		"circlebroke2sucks",
-		"dhamster",
-		"hearthstonetears",
-		"Jerkle",
-		"logicandbravery",
-		"metasaur",
-		"saidagrundy",
-		"Subredditmon",
-		"shitcbsays"
+		"subreddit"
 	};
 	
 	private static final String USER_AGENT = 
