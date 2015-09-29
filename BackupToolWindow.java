@@ -8,8 +8,6 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Iterator;
-import java.util.List;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -24,6 +22,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.DropMode;
 import javax.swing.TransferHandler;
+import javax.swing.ListSelectionModel;
 
 public class BackupToolWindow {
 	/**
@@ -136,6 +135,7 @@ public class BackupToolWindow {
 
 		listModel = new DefaultListModel<Subreddit>();
 		JList<Subreddit> listQueue = new JList<Subreddit>(listModel);
+		listQueue.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		listQueue.setDropMode(DropMode.INSERT);
 		listQueue.setDragEnabled(true);
 		GridBagConstraints gbc_listQueue = new GridBagConstraints();
@@ -265,9 +265,14 @@ public class BackupToolWindow {
 	 */
 	@SuppressWarnings({"unchecked", "serial"})
 	public class DragAndDropTransferHandler extends TransferHandler {
-		private int[] indices = null;
-		private int addIndex = -1;
-		private int addCount = 0;
+		/**
+		 * Index from which the item was moved
+		 */
+		private int fromIndex = -1;
+		/**
+		 * New index.
+		 */
+		private int toIndex = -1;
 		
 		/**
 		 * Only allow importing strings.
@@ -285,27 +290,15 @@ public class BackupToolWindow {
 		 */
 		protected Transferable createTransferable(JComponent c) {
 			JList<Subreddit> list = (JList<Subreddit>) c;
-			indices = list.getSelectedIndices();
-			List<Subreddit> values = list.getSelectedValuesList();
-
-			StringBuilder builder = new StringBuilder();
-
-			Iterator<Subreddit> ittr = values.iterator();
-			while (ittr.hasNext()) {
-				builder.append(ittr.next().name);
-				if (ittr.hasNext()) {
-					builder.append("\n");
-				}
-			}
-
-			return new StringSelection(builder.toString());
+			fromIndex = list.getSelectedIndex();
+			return new StringSelection(list.getSelectedValue().name);
 		}
 
 		/**
 		 * We support both copy and move actions.
 		 */
 		public int getSourceActions(JComponent c) {
-			return TransferHandler.COPY_OR_MOVE;
+			return TransferHandler.MOVE;
 		}
 
 		/**
@@ -320,40 +313,18 @@ public class BackupToolWindow {
 			DefaultListModel<Subreddit> listModel = (DefaultListModel<Subreddit>) list
 					.getModel();
 			JList.DropLocation dl = (JList.DropLocation) info.getDropLocation();
-			int index = dl.getIndex();
-			boolean insert = dl.isInsert();
+			toIndex = dl.getIndex();
 
-			addIndex = index;
-			
-			// Get the string that is being dropped.
+			//Create the new subreddit.
 			Transferable t = info.getTransferable();
-			String data;
+			String sub;
 			try {
-				data = (String) t.getTransferData(DataFlavor.stringFlavor);
+				sub = (String) t.getTransferData(DataFlavor.stringFlavor);
 			} catch (Exception e) {
 				return false;
 			}
 
-			// Wherever there is a newline in the incoming data,
-			// break it into a separate item in the list.
-			String[] values = data.split("\n");
-
-			addCount = values.length;
-			
-			// Perform the actual import.
-			for (int i = 0; i < values.length; i++) {
-				if (insert) {
-					listModel.add(index++, new Subreddit(values[i]));
-				} else {
-					// If the items go beyond the end of the current
-					// list, add them in.
-					if (index < listModel.getSize()) {
-						listModel.set(index++, new Subreddit(values[i]));
-					} else {
-						listModel.add(index++, new Subreddit(values[i]));
-					}
-				}
-			}
+			listModel.add(toIndex, new Subreddit(sub));
 			return true;
 		}
 
@@ -365,20 +336,11 @@ public class BackupToolWindow {
 			DefaultListModel<String> listModel = (DefaultListModel<String>) source
 					.getModel();
 
-			if (action == TransferHandler.MOVE) {
-				for (int i = 0; i < indices.length; i++) {
-					if (indices[i] > addIndex) {
-						indices[i] += addCount;
-					}
-				}
-				for (int i = indices.length - 1; i >= 0; i--) {
-	                listModel.remove(indices[i]);
-	            }
+			if (fromIndex < toIndex) {
+				listModel.remove(fromIndex);
+			} else {
+				listModel.remove(fromIndex + 1);
 			}
-
-			indices = null;
-			addCount = 0;
-			addIndex = -1;
 		}
 	}
 }
