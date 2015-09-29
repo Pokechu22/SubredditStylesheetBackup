@@ -3,11 +3,17 @@ import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -17,7 +23,7 @@ import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.DropMode;
-
+import javax.swing.TransferHandler;
 
 public class BackupToolWindow {
 	/**
@@ -25,31 +31,31 @@ public class BackupToolWindow {
 	 */
 	private static class Subreddit {
 		public final String name;
-		
+
 		public Subreddit(String name) {
 			if (name == null) {
 				throw new IllegalArgumentException("name must not be null");
 			}
-			
+
 			this.name = name;
 		}
-		
+
 		public boolean equals(Object other) {
 			return other instanceof Subreddit
 					&& this.name.equalsIgnoreCase(((Subreddit) other).name);
 		}
-		
+
 		@Override
 		public String toString() {
 			return "/r/" + name;
 		}
 	}
-	
+
 	private JFrame frame;
 	private JTextField textFieldCurrentSubreddit;
 	private JTextField textFieldAddSubreddit;
 	private JTextField textFieldSaveLocation;
-	
+
 	private DefaultListModel<Subreddit> listModel;
 
 	/**
@@ -82,26 +88,27 @@ public class BackupToolWindow {
 		frame = new JFrame();
 		frame.setBounds(100, 100, 450, 300);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
+
 		JSplitPane splitPane = new JSplitPane();
 		frame.getContentPane().add(splitPane, BorderLayout.CENTER);
-		
+
 		JPanel queuePanel = new JPanel();
 		splitPane.setLeftComponent(queuePanel);
 		GridBagLayout gbl_queuePanel = new GridBagLayout();
-		gbl_queuePanel.columnWidths = new int[]{0, 0};
-		gbl_queuePanel.rowHeights = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0};
-		gbl_queuePanel.columnWeights = new double[]{1.0, Double.MIN_VALUE};
-		gbl_queuePanel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gbl_queuePanel.columnWidths = new int[] { 0, 0 };
+		gbl_queuePanel.rowHeights = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		gbl_queuePanel.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
+		gbl_queuePanel.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 1.0,
+				0.0, 0.0, 0.0, Double.MIN_VALUE };
 		queuePanel.setLayout(gbl_queuePanel);
-		
+
 		JLabel labelCurrentSubreddit = new JLabel("Current subreddit");
 		GridBagConstraints gbc_labelCurrentSubreddit = new GridBagConstraints();
 		gbc_labelCurrentSubreddit.insets = new Insets(0, 0, 5, 0);
 		gbc_labelCurrentSubreddit.gridx = 0;
 		gbc_labelCurrentSubreddit.gridy = 0;
 		queuePanel.add(labelCurrentSubreddit, gbc_labelCurrentSubreddit);
-		
+
 		textFieldCurrentSubreddit = new JTextField();
 		textFieldCurrentSubreddit.setEditable(false);
 		textFieldCurrentSubreddit.setColumns(10);
@@ -110,61 +117,65 @@ public class BackupToolWindow {
 		gbc_textFieldCurrentSubreddit.insets = new Insets(0, 0, 5, 0);
 		gbc_textFieldCurrentSubreddit.gridx = 0;
 		gbc_textFieldCurrentSubreddit.gridy = 1;
-		queuePanel.add(textFieldCurrentSubreddit, gbc_textFieldCurrentSubreddit);
-		
+		queuePanel
+				.add(textFieldCurrentSubreddit, gbc_textFieldCurrentSubreddit);
+
 		JSeparator separator1 = new JSeparator();
 		GridBagConstraints gbc_separator1 = new GridBagConstraints();
 		gbc_separator1.insets = new Insets(0, 0, 5, 0);
 		gbc_separator1.gridx = 0;
 		gbc_separator1.gridy = 2;
 		queuePanel.add(separator1, gbc_separator1);
-		
+
 		JLabel labelQueue = new JLabel("Queue");
 		GridBagConstraints gbc_labelQueue = new GridBagConstraints();
 		gbc_labelQueue.insets = new Insets(0, 0, 5, 0);
 		gbc_labelQueue.gridx = 0;
 		gbc_labelQueue.gridy = 3;
 		queuePanel.add(labelQueue, gbc_labelQueue);
-		
+
 		listModel = new DefaultListModel<Subreddit>();
 		JList<Subreddit> listQueue = new JList<Subreddit>(listModel);
+		listQueue.setDropMode(DropMode.INSERT);
+		listQueue.setDragEnabled(true);
 		GridBagConstraints gbc_listQueue = new GridBagConstraints();
 		gbc_listQueue.fill = GridBagConstraints.BOTH;
 		gbc_listQueue.insets = new Insets(0, 0, 5, 0);
 		gbc_listQueue.gridx = 0;
 		gbc_listQueue.gridy = 4;
+		listQueue.setTransferHandler(new DragAndDropTransferHandler());
 		queuePanel.add(listQueue, gbc_listQueue);
-		
+
 		JSeparator separator2 = new JSeparator();
 		GridBagConstraints gbc_separator2 = new GridBagConstraints();
 		gbc_separator2.insets = new Insets(0, 0, 5, 0);
 		gbc_separator2.gridx = 0;
 		gbc_separator2.gridy = 5;
 		queuePanel.add(separator2, gbc_separator2);
-		
+
 		JLabel labelAddSubreddit = new JLabel("Add a subreddit");
 		GridBagConstraints gbc_labelAddSubreddit = new GridBagConstraints();
 		gbc_labelAddSubreddit.insets = new Insets(0, 0, 5, 0);
 		gbc_labelAddSubreddit.gridx = 0;
 		gbc_labelAddSubreddit.gridy = 6;
 		queuePanel.add(labelAddSubreddit, gbc_labelAddSubreddit);
-		
+
 		textFieldAddSubreddit = new JTextField();
 		textFieldAddSubreddit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				String subName = textFieldAddSubreddit.getText();
-				
+
 				if (subName.startsWith("/r/")) {
 					subName = subName.substring(3);
 				} else if (subName.startsWith("r/")) {
 					subName = subName.substring(2);
 				}
 				Subreddit sub = new Subreddit(subName);
-				
+
 				if (!listModel.contains(sub)) {
 					listModel.addElement(sub);
 				}
-				
+
 				textFieldAddSubreddit.setText("");
 			}
 		});
@@ -174,16 +185,17 @@ public class BackupToolWindow {
 		gbc_textFieldAddSubreddit.gridx = 0;
 		gbc_textFieldAddSubreddit.gridy = 7;
 		queuePanel.add(textFieldAddSubreddit, gbc_textFieldAddSubreddit);
-		
+
 		JPanel panelMain = new JPanel();
 		splitPane.setRightComponent(panelMain);
 		GridBagLayout gbl_panelMain = new GridBagLayout();
-		gbl_panelMain.columnWidths = new int[]{252, 0, 0};
-		gbl_panelMain.rowHeights = new int[]{0, 0, 0, 0, 0, 0, 0};
-		gbl_panelMain.columnWeights = new double[]{1.0, 0.0, Double.MIN_VALUE};
-		gbl_panelMain.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gbl_panelMain.columnWidths = new int[] { 252, 0, 0 };
+		gbl_panelMain.rowHeights = new int[] { 0, 0, 0, 0, 0, 0, 0 };
+		gbl_panelMain.columnWeights = new double[] { 1.0, 0.0, Double.MIN_VALUE };
+		gbl_panelMain.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+				Double.MIN_VALUE };
 		panelMain.setLayout(gbl_panelMain);
-		
+
 		JLabel labelSaveLocation = new JLabel("Save location");
 		GridBagConstraints gbc_labelSaveLocation = new GridBagConstraints();
 		gbc_labelSaveLocation.gridwidth = 2;
@@ -191,7 +203,7 @@ public class BackupToolWindow {
 		gbc_labelSaveLocation.gridx = 0;
 		gbc_labelSaveLocation.gridy = 0;
 		panelMain.add(labelSaveLocation, gbc_labelSaveLocation);
-		
+
 		textFieldSaveLocation = new JTextField();
 		GridBagConstraints gbc_textFieldSaveLocation = new GridBagConstraints();
 		gbc_textFieldSaveLocation.insets = new Insets(0, 0, 5, 5);
@@ -200,14 +212,14 @@ public class BackupToolWindow {
 		gbc_textFieldSaveLocation.gridy = 1;
 		panelMain.add(textFieldSaveLocation, gbc_textFieldSaveLocation);
 		textFieldSaveLocation.setColumns(10);
-		
+
 		JButton buttonBrowse = new JButton("Browse");
 		GridBagConstraints gbc_buttonBrowse = new GridBagConstraints();
 		gbc_buttonBrowse.insets = new Insets(0, 0, 5, 0);
 		gbc_buttonBrowse.gridx = 1;
 		gbc_buttonBrowse.gridy = 1;
 		panelMain.add(buttonBrowse, gbc_buttonBrowse);
-		
+
 		JSeparator separator3 = new JSeparator();
 		GridBagConstraints gbc_separator3 = new GridBagConstraints();
 		gbc_separator3.insets = new Insets(0, 0, 5, 0);
@@ -216,7 +228,7 @@ public class BackupToolWindow {
 		gbc_separator3.gridx = 0;
 		gbc_separator3.gridy = 2;
 		panelMain.add(separator3, gbc_separator3);
-		
+
 		JLabel labelProgress = new JLabel("Progress");
 		GridBagConstraints gbc_labelProgress = new GridBagConstraints();
 		gbc_labelProgress.insets = new Insets(0, 0, 5, 0);
@@ -224,7 +236,7 @@ public class BackupToolWindow {
 		gbc_labelProgress.gridx = 0;
 		gbc_labelProgress.gridy = 3;
 		panelMain.add(labelProgress, gbc_labelProgress);
-		
+
 		JProgressBar progressBar = new JProgressBar();
 		progressBar.setString("CurrentTask");
 		progressBar.setStringPainted(true);
@@ -235,7 +247,7 @@ public class BackupToolWindow {
 		gbc_progressBar.gridx = 0;
 		gbc_progressBar.gridy = 4;
 		panelMain.add(progressBar, gbc_progressBar);
-		
+
 		JSeparator separator4 = new JSeparator();
 		GridBagConstraints gbc_separator4 = new GridBagConstraints();
 		gbc_separator4.gridwidth = 2;
@@ -245,4 +257,128 @@ public class BackupToolWindow {
 		panelMain.add(separator4, gbc_separator4);
 	}
 
+	/**
+	 * Allow drag and drop on the list.
+	 * 
+	 * Based off of this:
+	 * http://docs.oracle.com/javase/tutorial/uiswing/dnd/dropmodedemo.html.
+	 */
+	@SuppressWarnings({"unchecked", "serial"})
+	public class DragAndDropTransferHandler extends TransferHandler {
+		private int[] indices = null;
+		private int addIndex = -1;
+		private int addCount = 0;
+		
+		/**
+		 * Only allow importing strings.
+		 */
+		public boolean canImport(TransferHandler.TransferSupport info) {
+			if (!info.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+				return false;
+			}
+			return true;
+		}		
+		
+		/**
+		 * Bundle up the selected items in a single list for export. Each line
+		 * is separated by a newline.
+		 */
+		protected Transferable createTransferable(JComponent c) {
+			JList<Subreddit> list = (JList<Subreddit>) c;
+			indices = list.getSelectedIndices();
+			List<Subreddit> values = list.getSelectedValuesList();
+
+			StringBuilder builder = new StringBuilder();
+
+			Iterator<Subreddit> ittr = values.iterator();
+			while (ittr.hasNext()) {
+				builder.append(ittr.next().name);
+				if (ittr.hasNext()) {
+					builder.append("\n");
+				}
+			}
+
+			return new StringSelection(builder.toString());
+		}
+
+		/**
+		 * We support both copy and move actions.
+		 */
+		public int getSourceActions(JComponent c) {
+			return TransferHandler.COPY_OR_MOVE;
+		}
+
+		/**
+		 * Perform the actual import. This demo only supports drag and drop.
+		 */
+		public boolean importData(TransferHandler.TransferSupport info) {
+			if (!info.isDrop()) {
+				return false;
+			}
+
+			JList<Subreddit> list = (JList<Subreddit>) info.getComponent();
+			DefaultListModel<Subreddit> listModel = (DefaultListModel<Subreddit>) list
+					.getModel();
+			JList.DropLocation dl = (JList.DropLocation) info.getDropLocation();
+			int index = dl.getIndex();
+			boolean insert = dl.isInsert();
+
+			addIndex = index;
+			
+			// Get the string that is being dropped.
+			Transferable t = info.getTransferable();
+			String data;
+			try {
+				data = (String) t.getTransferData(DataFlavor.stringFlavor);
+			} catch (Exception e) {
+				return false;
+			}
+
+			// Wherever there is a newline in the incoming data,
+			// break it into a separate item in the list.
+			String[] values = data.split("\n");
+
+			addCount = values.length;
+			
+			// Perform the actual import.
+			for (int i = 0; i < values.length; i++) {
+				if (insert) {
+					listModel.add(index++, new Subreddit(values[i]));
+				} else {
+					// If the items go beyond the end of the current
+					// list, add them in.
+					if (index < listModel.getSize()) {
+						listModel.set(index++, new Subreddit(values[i]));
+					} else {
+						listModel.add(index++, new Subreddit(values[i]));
+					}
+				}
+			}
+			return true;
+		}
+
+		/**
+		 * Remove the items moved from the list.
+		 */
+		protected void exportDone(JComponent c, Transferable data, int action) {
+			JList<String> source = (JList<String>) c;
+			DefaultListModel<String> listModel = (DefaultListModel<String>) source
+					.getModel();
+
+			if (action == TransferHandler.MOVE) {
+				for (int i = 0; i < indices.length; i++) {
+					if (indices[i] > addIndex) {
+						indices[i] += addCount;
+					}
+				}
+				for (int i = indices.length - 1; i >= 0; i--) {
+	                listModel.remove(indices[i]);
+	            }
+			}
+
+			indices = null;
+			addCount = 0;
+			addIndex = -1;
+		}
+	}
 }
