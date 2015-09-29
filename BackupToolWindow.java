@@ -1,27 +1,56 @@
-import java.awt.EventQueue;
-
-import javax.swing.JFrame;
-import javax.swing.JPanel;
 import java.awt.BorderLayout;
-import java.awt.GridLayout;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
-import java.awt.GridBagLayout;
+import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Insets;
-import javax.swing.JSeparator;
-import javax.swing.JList;
-import javax.swing.JSplitPane;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JSeparator;
+import javax.swing.JSplitPane;
+import javax.swing.JTextField;
+import javax.swing.DropMode;
 
 
 public class BackupToolWindow {
-
+	/**
+	 * Wrapper class for a string for case-insensitive purposes.
+	 */
+	private static class Subreddit {
+		public final String name;
+		
+		public Subreddit(String name) {
+			if (name == null) {
+				throw new IllegalArgumentException("name must not be null");
+			}
+			
+			this.name = name;
+		}
+		
+		public boolean equals(Object other) {
+			return other instanceof Subreddit
+					&& this.name.equalsIgnoreCase(((Subreddit) other).name);
+		}
+		
+		@Override
+		public String toString() {
+			return "/r/" + name;
+		}
+	}
+	
 	private JFrame frame;
 	private JTextField textFieldCurrentSubreddit;
 	private JTextField textFieldAddSubreddit;
 	private JTextField textFieldSaveLocation;
+	
+	private DefaultListModel<Subreddit> listModel;
 
 	/**
 	 * Launch the application.
@@ -97,7 +126,8 @@ public class BackupToolWindow {
 		gbc_labelQueue.gridy = 3;
 		queuePanel.add(labelQueue, gbc_labelQueue);
 		
-		JList listQueue = new JList();
+		listModel = new DefaultListModel<Subreddit>();
+		JList<Subreddit> listQueue = new JList<Subreddit>(listModel);
 		GridBagConstraints gbc_listQueue = new GridBagConstraints();
 		gbc_listQueue.fill = GridBagConstraints.BOTH;
 		gbc_listQueue.insets = new Insets(0, 0, 5, 0);
@@ -120,6 +150,24 @@ public class BackupToolWindow {
 		queuePanel.add(labelAddSubreddit, gbc_labelAddSubreddit);
 		
 		textFieldAddSubreddit = new JTextField();
+		textFieldAddSubreddit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				String subName = textFieldAddSubreddit.getText();
+				
+				if (subName.startsWith("/r/")) {
+					subName = subName.substring(3);
+				} else if (subName.startsWith("r/")) {
+					subName = subName.substring(2);
+				}
+				Subreddit sub = new Subreddit(subName);
+				
+				if (!listModel.contains(sub)) {
+					listModel.addElement(sub);
+				}
+				
+				textFieldAddSubreddit.setText("");
+			}
+		});
 		textFieldAddSubreddit.setColumns(10);
 		GridBagConstraints gbc_textFieldAddSubreddit = new GridBagConstraints();
 		gbc_textFieldAddSubreddit.fill = GridBagConstraints.HORIZONTAL;
