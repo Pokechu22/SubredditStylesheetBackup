@@ -19,9 +19,9 @@ import javax.swing.JProgressBar;
 public class BackupToolWindow {
 
 	private JFrame frame;
-	private JTextField textField;
-	private JTextField textField_1;
-	private JTextField textField_2;
+	private JTextField textFieldCurrentSubreddit;
+	private JTextField textFieldAddSubreddit;
+	private JTextField textFieldSaveLocation;
 
 	/**
 	 * Launch the application.
@@ -57,124 +57,125 @@ public class BackupToolWindow {
 		JSplitPane splitPane = new JSplitPane();
 		frame.getContentPane().add(splitPane, BorderLayout.CENTER);
 		
-		JPanel panel = new JPanel();
-		splitPane.setLeftComponent(panel);
-		GridBagLayout gbl_panel = new GridBagLayout();
-		gbl_panel.columnWidths = new int[]{0, 0};
-		gbl_panel.rowHeights = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0};
-		gbl_panel.columnWeights = new double[]{1.0, Double.MIN_VALUE};
-		gbl_panel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
-		panel.setLayout(gbl_panel);
+		JPanel queuePanel = new JPanel();
+		splitPane.setLeftComponent(queuePanel);
+		GridBagLayout gbl_queuePanel = new GridBagLayout();
+		gbl_queuePanel.columnWidths = new int[]{0, 0};
+		gbl_queuePanel.rowHeights = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0};
+		gbl_queuePanel.columnWeights = new double[]{1.0, Double.MIN_VALUE};
+		gbl_queuePanel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		queuePanel.setLayout(gbl_queuePanel);
 		
-		JLabel label = new JLabel("Current subreddit");
-		GridBagConstraints gbc_label = new GridBagConstraints();
-		gbc_label.insets = new Insets(0, 0, 5, 0);
-		gbc_label.gridx = 0;
-		gbc_label.gridy = 0;
-		panel.add(label, gbc_label);
+		JLabel labelCurrentSubreddit = new JLabel("Current subreddit");
+		GridBagConstraints gbc_labelCurrentSubreddit = new GridBagConstraints();
+		gbc_labelCurrentSubreddit.insets = new Insets(0, 0, 5, 0);
+		gbc_labelCurrentSubreddit.gridx = 0;
+		gbc_labelCurrentSubreddit.gridy = 0;
+		queuePanel.add(labelCurrentSubreddit, gbc_labelCurrentSubreddit);
 		
-		textField = new JTextField();
-		textField.setColumns(10);
-		GridBagConstraints gbc_textField = new GridBagConstraints();
-		gbc_textField.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textField.insets = new Insets(0, 0, 5, 0);
-		gbc_textField.gridx = 0;
-		gbc_textField.gridy = 1;
-		panel.add(textField, gbc_textField);
+		textFieldCurrentSubreddit = new JTextField();
+		textFieldCurrentSubreddit.setEditable(false);
+		textFieldCurrentSubreddit.setColumns(10);
+		GridBagConstraints gbc_textFieldCurrentSubreddit = new GridBagConstraints();
+		gbc_textFieldCurrentSubreddit.fill = GridBagConstraints.HORIZONTAL;
+		gbc_textFieldCurrentSubreddit.insets = new Insets(0, 0, 5, 0);
+		gbc_textFieldCurrentSubreddit.gridx = 0;
+		gbc_textFieldCurrentSubreddit.gridy = 1;
+		queuePanel.add(textFieldCurrentSubreddit, gbc_textFieldCurrentSubreddit);
 		
-		JSeparator separator = new JSeparator();
-		GridBagConstraints gbc_separator = new GridBagConstraints();
-		gbc_separator.insets = new Insets(0, 0, 5, 0);
-		gbc_separator.gridx = 0;
-		gbc_separator.gridy = 2;
-		panel.add(separator, gbc_separator);
+		JSeparator separator1 = new JSeparator();
+		GridBagConstraints gbc_separator1 = new GridBagConstraints();
+		gbc_separator1.insets = new Insets(0, 0, 5, 0);
+		gbc_separator1.gridx = 0;
+		gbc_separator1.gridy = 2;
+		queuePanel.add(separator1, gbc_separator1);
 		
-		JLabel label_1 = new JLabel("Queue");
-		GridBagConstraints gbc_label_1 = new GridBagConstraints();
-		gbc_label_1.insets = new Insets(0, 0, 5, 0);
-		gbc_label_1.gridx = 0;
-		gbc_label_1.gridy = 3;
-		panel.add(label_1, gbc_label_1);
+		JLabel labelQueue = new JLabel("Queue");
+		GridBagConstraints gbc_labelQueue = new GridBagConstraints();
+		gbc_labelQueue.insets = new Insets(0, 0, 5, 0);
+		gbc_labelQueue.gridx = 0;
+		gbc_labelQueue.gridy = 3;
+		queuePanel.add(labelQueue, gbc_labelQueue);
 		
-		JList list = new JList();
-		GridBagConstraints gbc_list = new GridBagConstraints();
-		gbc_list.fill = GridBagConstraints.BOTH;
-		gbc_list.insets = new Insets(0, 0, 5, 0);
-		gbc_list.gridx = 0;
-		gbc_list.gridy = 4;
-		panel.add(list, gbc_list);
+		JList listQueue = new JList();
+		GridBagConstraints gbc_listQueue = new GridBagConstraints();
+		gbc_listQueue.fill = GridBagConstraints.BOTH;
+		gbc_listQueue.insets = new Insets(0, 0, 5, 0);
+		gbc_listQueue.gridx = 0;
+		gbc_listQueue.gridy = 4;
+		queuePanel.add(listQueue, gbc_listQueue);
 		
-		JSeparator separator_1 = new JSeparator();
-		GridBagConstraints gbc_separator_1 = new GridBagConstraints();
-		gbc_separator_1.insets = new Insets(0, 0, 5, 0);
-		gbc_separator_1.gridx = 0;
-		gbc_separator_1.gridy = 5;
-		panel.add(separator_1, gbc_separator_1);
+		JSeparator separator2 = new JSeparator();
+		GridBagConstraints gbc_separator2 = new GridBagConstraints();
+		gbc_separator2.insets = new Insets(0, 0, 5, 0);
+		gbc_separator2.gridx = 0;
+		gbc_separator2.gridy = 5;
+		queuePanel.add(separator2, gbc_separator2);
 		
-		JLabel label_2 = new JLabel("Add a subreddit");
-		GridBagConstraints gbc_label_2 = new GridBagConstraints();
-		gbc_label_2.insets = new Insets(0, 0, 5, 0);
-		gbc_label_2.gridx = 0;
-		gbc_label_2.gridy = 6;
-		panel.add(label_2, gbc_label_2);
+		JLabel labelAddSubreddit = new JLabel("Add a subreddit");
+		GridBagConstraints gbc_labelAddSubreddit = new GridBagConstraints();
+		gbc_labelAddSubreddit.insets = new Insets(0, 0, 5, 0);
+		gbc_labelAddSubreddit.gridx = 0;
+		gbc_labelAddSubreddit.gridy = 6;
+		queuePanel.add(labelAddSubreddit, gbc_labelAddSubreddit);
 		
-		textField_1 = new JTextField();
-		textField_1.setColumns(10);
-		GridBagConstraints gbc_textField_1 = new GridBagConstraints();
-		gbc_textField_1.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textField_1.gridx = 0;
-		gbc_textField_1.gridy = 7;
-		panel.add(textField_1, gbc_textField_1);
+		textFieldAddSubreddit = new JTextField();
+		textFieldAddSubreddit.setColumns(10);
+		GridBagConstraints gbc_textFieldAddSubreddit = new GridBagConstraints();
+		gbc_textFieldAddSubreddit.fill = GridBagConstraints.HORIZONTAL;
+		gbc_textFieldAddSubreddit.gridx = 0;
+		gbc_textFieldAddSubreddit.gridy = 7;
+		queuePanel.add(textFieldAddSubreddit, gbc_textFieldAddSubreddit);
 		
-		JPanel panel_1 = new JPanel();
-		splitPane.setRightComponent(panel_1);
-		GridBagLayout gbl_panel_1 = new GridBagLayout();
-		gbl_panel_1.columnWidths = new int[]{252, 0, 0};
-		gbl_panel_1.rowHeights = new int[]{0, 0, 0, 0, 0, 0, 0};
-		gbl_panel_1.columnWeights = new double[]{1.0, 0.0, Double.MIN_VALUE};
-		gbl_panel_1.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
-		panel_1.setLayout(gbl_panel_1);
+		JPanel panelMain = new JPanel();
+		splitPane.setRightComponent(panelMain);
+		GridBagLayout gbl_panelMain = new GridBagLayout();
+		gbl_panelMain.columnWidths = new int[]{252, 0, 0};
+		gbl_panelMain.rowHeights = new int[]{0, 0, 0, 0, 0, 0, 0};
+		gbl_panelMain.columnWeights = new double[]{1.0, 0.0, Double.MIN_VALUE};
+		gbl_panelMain.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		panelMain.setLayout(gbl_panelMain);
 		
-		JLabel lblSaveLocation = new JLabel("Save location");
-		GridBagConstraints gbc_lblSaveLocation = new GridBagConstraints();
-		gbc_lblSaveLocation.gridwidth = 2;
-		gbc_lblSaveLocation.insets = new Insets(0, 0, 5, 0);
-		gbc_lblSaveLocation.gridx = 0;
-		gbc_lblSaveLocation.gridy = 0;
-		panel_1.add(lblSaveLocation, gbc_lblSaveLocation);
+		JLabel labelSaveLocation = new JLabel("Save location");
+		GridBagConstraints gbc_labelSaveLocation = new GridBagConstraints();
+		gbc_labelSaveLocation.gridwidth = 2;
+		gbc_labelSaveLocation.insets = new Insets(0, 0, 5, 0);
+		gbc_labelSaveLocation.gridx = 0;
+		gbc_labelSaveLocation.gridy = 0;
+		panelMain.add(labelSaveLocation, gbc_labelSaveLocation);
 		
-		textField_2 = new JTextField();
-		GridBagConstraints gbc_textField_2 = new GridBagConstraints();
-		gbc_textField_2.insets = new Insets(0, 0, 5, 5);
-		gbc_textField_2.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textField_2.gridx = 0;
-		gbc_textField_2.gridy = 1;
-		panel_1.add(textField_2, gbc_textField_2);
-		textField_2.setColumns(10);
+		textFieldSaveLocation = new JTextField();
+		GridBagConstraints gbc_textFieldSaveLocation = new GridBagConstraints();
+		gbc_textFieldSaveLocation.insets = new Insets(0, 0, 5, 5);
+		gbc_textFieldSaveLocation.fill = GridBagConstraints.HORIZONTAL;
+		gbc_textFieldSaveLocation.gridx = 0;
+		gbc_textFieldSaveLocation.gridy = 1;
+		panelMain.add(textFieldSaveLocation, gbc_textFieldSaveLocation);
+		textFieldSaveLocation.setColumns(10);
 		
-		JButton btnNewButton = new JButton("Browse");
-		GridBagConstraints gbc_btnNewButton = new GridBagConstraints();
-		gbc_btnNewButton.insets = new Insets(0, 0, 5, 0);
-		gbc_btnNewButton.gridx = 1;
-		gbc_btnNewButton.gridy = 1;
-		panel_1.add(btnNewButton, gbc_btnNewButton);
+		JButton buttonBrowse = new JButton("Browse");
+		GridBagConstraints gbc_buttonBrowse = new GridBagConstraints();
+		gbc_buttonBrowse.insets = new Insets(0, 0, 5, 0);
+		gbc_buttonBrowse.gridx = 1;
+		gbc_buttonBrowse.gridy = 1;
+		panelMain.add(buttonBrowse, gbc_buttonBrowse);
 		
-		JSeparator separator_2 = new JSeparator();
-		GridBagConstraints gbc_separator_2 = new GridBagConstraints();
-		gbc_separator_2.insets = new Insets(0, 0, 5, 0);
-		gbc_separator_2.gridwidth = 2;
-		gbc_separator_2.fill = GridBagConstraints.HORIZONTAL;
-		gbc_separator_2.gridx = 0;
-		gbc_separator_2.gridy = 2;
-		panel_1.add(separator_2, gbc_separator_2);
+		JSeparator separator3 = new JSeparator();
+		GridBagConstraints gbc_separator3 = new GridBagConstraints();
+		gbc_separator3.insets = new Insets(0, 0, 5, 0);
+		gbc_separator3.gridwidth = 2;
+		gbc_separator3.fill = GridBagConstraints.HORIZONTAL;
+		gbc_separator3.gridx = 0;
+		gbc_separator3.gridy = 2;
+		panelMain.add(separator3, gbc_separator3);
 		
-		JLabel lblProgress = new JLabel("Progress");
-		GridBagConstraints gbc_lblProgress = new GridBagConstraints();
-		gbc_lblProgress.insets = new Insets(0, 0, 5, 0);
-		gbc_lblProgress.gridwidth = 2;
-		gbc_lblProgress.gridx = 0;
-		gbc_lblProgress.gridy = 3;
-		panel_1.add(lblProgress, gbc_lblProgress);
+		JLabel labelProgress = new JLabel("Progress");
+		GridBagConstraints gbc_labelProgress = new GridBagConstraints();
+		gbc_labelProgress.insets = new Insets(0, 0, 5, 0);
+		gbc_labelProgress.gridwidth = 2;
+		gbc_labelProgress.gridx = 0;
+		gbc_labelProgress.gridy = 3;
+		panelMain.add(labelProgress, gbc_labelProgress);
 		
 		JProgressBar progressBar = new JProgressBar();
 		progressBar.setString("CurrentTask");
@@ -185,15 +186,15 @@ public class BackupToolWindow {
 		gbc_progressBar.gridwidth = 2;
 		gbc_progressBar.gridx = 0;
 		gbc_progressBar.gridy = 4;
-		panel_1.add(progressBar, gbc_progressBar);
+		panelMain.add(progressBar, gbc_progressBar);
 		
-		JSeparator separator_3 = new JSeparator();
-		GridBagConstraints gbc_separator_3 = new GridBagConstraints();
-		gbc_separator_3.gridwidth = 2;
-		gbc_separator_3.insets = new Insets(0, 0, 0, 5);
-		gbc_separator_3.gridx = 0;
-		gbc_separator_3.gridy = 5;
-		panel_1.add(separator_3, gbc_separator_3);
+		JSeparator separator4 = new JSeparator();
+		GridBagConstraints gbc_separator4 = new GridBagConstraints();
+		gbc_separator4.gridwidth = 2;
+		gbc_separator4.insets = new Insets(0, 0, 0, 5);
+		gbc_separator4.gridx = 0;
+		gbc_separator4.gridy = 5;
+		panelMain.add(separator4, gbc_separator4);
 	}
 
 }
