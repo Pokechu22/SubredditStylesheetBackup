@@ -8,10 +8,12 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -79,6 +81,11 @@ public class BackupToolWindow {
 	public BackupToolWindow() {
 		initialize();
 	}
+	
+	/**
+	 * Base directory in which to save data.
+	 */
+	private File baseDirectory;
 
 	/**
 	 * Initialize the contents of the frame.
@@ -161,6 +168,7 @@ public class BackupToolWindow {
 		queuePanel.add(labelAddSubreddit, gbc_labelAddSubreddit);
 
 		textFieldAddSubreddit = new JTextField();
+		textFieldAddSubreddit.setEditable(false);
 		textFieldAddSubreddit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				String subName = textFieldAddSubreddit.getText();
@@ -205,6 +213,7 @@ public class BackupToolWindow {
 		panelMain.add(labelSaveLocation, gbc_labelSaveLocation);
 
 		textFieldSaveLocation = new JTextField();
+		textFieldSaveLocation.setEditable(false);
 		GridBagConstraints gbc_textFieldSaveLocation = new GridBagConstraints();
 		gbc_textFieldSaveLocation.insets = new Insets(0, 0, 5, 5);
 		gbc_textFieldSaveLocation.fill = GridBagConstraints.HORIZONTAL;
@@ -214,6 +223,23 @@ public class BackupToolWindow {
 		textFieldSaveLocation.setColumns(10);
 
 		JButton buttonBrowse = new JButton("Browse");
+		buttonBrowse.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				JFileChooser dialog = new JFileChooser();
+				dialog.setMultiSelectionEnabled(false);
+				dialog.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				
+				int result = dialog.showSaveDialog(BackupToolWindow.this.frame);
+				
+				if (result != JFileChooser.APPROVE_OPTION) {
+					return;
+				}
+				
+				baseDirectory = dialog.getSelectedFile();
+				textFieldSaveLocation.setText(baseDirectory.getAbsolutePath());
+				textFieldAddSubreddit.setEditable(true);
+			}
+		});
 		GridBagConstraints gbc_buttonBrowse = new GridBagConstraints();
 		gbc_buttonBrowse.insets = new Insets(0, 0, 5, 0);
 		gbc_buttonBrowse.gridx = 1;
