@@ -348,7 +348,7 @@ public class BackupToolWindow {
 		panelMain.add(labelProgress, gbc_labelProgress);
 
 		progressBar = new JProgressBar();
-		progressBar.setString("CurrentTask");
+		progressBar.setString("");
 		progressBar.setStringPainted(true);
 		GridBagConstraints gbc_progressBar = new GridBagConstraints();
 		gbc_progressBar.insets = new Insets(0, 0, 5, 0);
@@ -467,6 +467,9 @@ public class BackupToolWindow {
 				try {
 					textFieldCurrentSubreddit.setText(subreddit.name);
 					
+					progressBar.setIndeterminate(true);
+					progressBar.setString(subreddit + ": Getting list of images");
+					
 					File folder = new File(baseDirectory, subreddit.name);
 					folder.mkdir();
 					
@@ -477,21 +480,35 @@ public class BackupToolWindow {
 						fileOut.print(json);
 					}
 					
-					System.out.println("Saving " + subreddit + " images");
-					
 					Matcher matcher = IMAGE_RE.matcher(json);
+					
+					int count = 0;
+					while (matcher.find()) {
+						count++;
+					}
+					
+					matcher.reset();
+					
+					progressBar.setIndeterminate(false);
+					progressBar.setMaximum(count);
+					progressBar.setValue(0);
+					
 					while (matcher.find()) {
 						String url = json.substring(matcher.start(1), matcher.end(1));
 						String ext = json.substring(matcher.start(2), matcher.end(2));
 						String name = json.substring(matcher.start(4), matcher.end(4));
 						
-						System.out.println("Saving " + name + " for " + subreddit);
+						progressBar.setString(subreddit + ": Saving " + name);
 						
 						File file = new File(folder, name + "." + ext);
 						
 						saveFile(url, file);
+						
+						progressBar.setValue(progressBar.getValue() + 1);
 					}
 				} catch (Exception e) {
+					progressBar.setIndeterminate(false);
+					progressBar.setString(subreddit + ": An error occured");
 					JOptionPane.showMessageDialog(
 							frame,
 							"An error occured saving " + subreddit + ": "
@@ -502,6 +519,10 @@ public class BackupToolWindow {
 					e.printStackTrace();
 				}
 			}
+			
+			progressBar.setIndeterminate(false);
+			progressBar.setString("Done!");
+			progressBar.setValue(progressBar.getMaximum());
 			
 			textFieldCurrentSubreddit.setText("");
 			
