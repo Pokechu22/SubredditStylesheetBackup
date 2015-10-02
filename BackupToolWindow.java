@@ -9,8 +9,16 @@ import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.net.URL;
+import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -30,6 +38,9 @@ import javax.swing.ListSelectionModel;
 import javax.swing.JCheckBox;
 
 public class BackupToolWindow {
+	private static final String USER_AGENT = 
+			"PC:backup-subreddit-images:v0.0.1 (by /u/pokechu22) ";
+	
 	/**
 	 * Wrapper class for a string for case-insensitive purposes.
 	 */
@@ -44,6 +55,10 @@ public class BackupToolWindow {
 			this.name = name;
 		}
 
+		public String getStylesheetURL() {
+			return String.format("http://www.reddit.com/r/%s/about/stylesheet.json", this.name);
+		}
+		
 		public boolean equals(Object other) {
 			return other instanceof Subreddit
 					&& this.name.equalsIgnoreCase(((Subreddit) other).name);
@@ -60,6 +75,7 @@ public class BackupToolWindow {
 	private JTextField textFieldAddSubreddit;
 	private JTextField textFieldSaveLocation;
 	private JCheckBox checkboxAutoAddDate;
+	private JButton buttonBrowse;
 
 	private DefaultListModel<Subreddit> listModel;
 
@@ -97,7 +113,21 @@ public class BackupToolWindow {
 	private File baseDirectory;
 	
 	private static final String START_DATE = (new SimpleDateFormat(
-			"yyyy-MM-dd_HH_mm_ssZ").format(new Date()));
+			"yyyy-MM-dd_HH_mm_ssZ").format(new Date())); 
+	
+	private static final Pattern IMAGE_RE = Pattern.compile(
+			"\"url\": \"(.+?\\.(png|jpg))\", \"link\": \"(.+?)\", \"name\": \"(.+?)\"");
+	
+	/**
+	 * Whether the data is being saved, and thus the directory cannot be
+	 * edited.
+	 */
+	private Thread saveThread;
+	private JProgressBar progressBar;
+	
+	private boolean isDownloading() {
+		return saveThread != null && saveThread.isAlive();
+	}
 	
 	/**
 	 * Initialize the contents of the frame.
@@ -197,6 +227,11 @@ public class BackupToolWindow {
 				}
 
 				textFieldAddSubreddit.setText("");
+				
+				if (!isDownloading()) {
+					saveThread = new DownloadThread();
+					saveThread.start();
+				}
 			}
 		});
 		textFieldAddSubreddit.setColumns(10);
@@ -235,42 +270,47 @@ public class BackupToolWindow {
 		panelMain.add(textFieldSaveLocation, gbc_textFieldSaveLocation);
 		textFieldSaveLocation.setColumns(10);
 		
-				JButton buttonBrowse = new JButton("Browse");
-				buttonBrowse.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent arg0) {
-						//TODO: Check if changing the directory is safe.
-						
-						JFileChooser dialog = new JFileChooser();
-						dialog.setMultiSelectionEnabled(false);
-						dialog.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-						
-						int result = dialog.showSaveDialog(BackupToolWindow.this.frame);
-						
-						if (result != JFileChooser.APPROVE_OPTION) {
-							return;
-						}
-						
-						datelessDirectory = dialog.getSelectedFile();
-						if (checkboxAutoAddDate.isSelected()) {
-							baseDirectory = new File(datelessDirectory, START_DATE);
-						} else {
-							baseDirectory = datelessDirectory;
-						}
-						textFieldSaveLocation.setText(baseDirectory.getAbsolutePath());
-						textFieldAddSubreddit.setEditable(true);
-					}
-				});
-				GridBagConstraints gbc_buttonBrowse = new GridBagConstraints();
-				gbc_buttonBrowse.insets = new Insets(0, 0, 5, 5);
-				gbc_buttonBrowse.gridx = 0;
-				gbc_buttonBrowse.gridy = 2;
-				panelMain.add(buttonBrowse, gbc_buttonBrowse);
+		buttonBrowse = new JButton("Browse");
+		buttonBrowse.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (isDownloading()) {
+					return;
+				}
+				
+				JFileChooser dialog = new JFileChooser();
+				dialog.setMultiSelectionEnabled(false);
+				dialog.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				
+				int result = dialog.showSaveDialog(BackupToolWindow.this.frame);
+				
+				if (result != JFileChooser.APPROVE_OPTION) {
+					return;
+				}
+				
+				datelessDirectory = dialog.getSelectedFile();
+				if (checkboxAutoAddDate.isSelected()) {
+					baseDirectory = new File(datelessDirectory, START_DATE);
+				} else {
+					baseDirectory = datelessDirectory;
+				}
+				textFieldSaveLocation.setText(baseDirectory.getAbsolutePath());
+				textFieldAddSubreddit.setEditable(true);
+			}
+		});
+		GridBagConstraints gbc_buttonBrowse = new GridBagConstraints();
+		gbc_buttonBrowse.insets = new Insets(0, 0, 5, 5);
+		gbc_buttonBrowse.gridx = 0;
+		gbc_buttonBrowse.gridy = 2;
+		panelMain.add(buttonBrowse, gbc_buttonBrowse);
 		
 		checkboxAutoAddDate = new JCheckBox("Automatically add date");
 		checkboxAutoAddDate.setSelected(true);
 		checkboxAutoAddDate.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				//TODO: Check if changing the directory is safe.
+				if (isDownloading()) {
+					return;
+				}
+				
 				if (datelessDirectory == null) {
 					return;
 				}
@@ -306,7 +346,7 @@ public class BackupToolWindow {
 		gbc_labelProgress.gridy = 4;
 		panelMain.add(labelProgress, gbc_labelProgress);
 
-		JProgressBar progressBar = new JProgressBar();
+		progressBar = new JProgressBar();
 		progressBar.setString("CurrentTask");
 		progressBar.setStringPainted(true);
 		GridBagConstraints gbc_progressBar = new GridBagConstraints();
@@ -408,6 +448,100 @@ public class BackupToolWindow {
 				listModel.remove(fromIndex);
 			} else {
 				listModel.remove(fromIndex + 1);
+			}
+		}
+	}
+	
+	private class DownloadThread extends Thread {
+		public void run() {
+			baseDirectory.mkdirs();
+			
+			buttonBrowse.setEnabled(false);
+			checkboxAutoAddDate.setEnabled(false);
+			
+			//TODO: Thread safety would *probably* be good.
+			while (!listModel.isEmpty()) {
+				try {
+					Subreddit subreddit = listModel.remove(0);
+					textFieldCurrentSubreddit.setText(subreddit.name);
+					
+					File folder = new File(baseDirectory, subreddit.name);
+					folder.mkdir();
+					
+					String json = query(subreddit.getStylesheetURL());
+
+					try (PrintWriter fileOut = new PrintWriter(new File(folder,
+							"stylesheet.json"))) {
+						fileOut.print(json);
+					}
+					
+					System.out.println("Saving " + subreddit + " images");
+					
+					Matcher matcher = IMAGE_RE.matcher(json);
+					while (matcher.find()) {
+						String url = json.substring(matcher.start(1), matcher.end(1));
+						String ext = json.substring(matcher.start(2), matcher.end(2));
+						String name = json.substring(matcher.start(4), matcher.end(4));
+						
+						System.out.println("Saving " + name + " for " + subreddit);
+						
+						File file = new File(folder, name + "." + ext);
+						
+						saveFile(url, file);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			
+			textFieldCurrentSubreddit.setText("");
+			
+			buttonBrowse.setEnabled(true);
+			checkboxAutoAddDate.setEnabled(true);
+		}
+		
+		/**
+		 * Quereys a reddit url and returns the API result.
+		 * 
+		 * Delays to not get in trouble.
+		 * 
+		 * @param url
+		 * @return
+		 */
+		private String query(String url) throws Exception {
+			URLConnection connection = (new URL(url)).openConnection();
+			
+			Thread.sleep(3000);
+			
+			connection.setRequestProperty("User-Agent", USER_AGENT);
+			
+			try (InputStream stream = connection.getInputStream()) {
+				try (Scanner scanner = new Scanner(stream)) {
+					String result = scanner.useDelimiter("\\Z").next();
+					
+					return result;
+				}
+			}
+		}
+		
+		/**
+		 * Saves a file to the specified path.
+		 */
+		private void saveFile(String url, File path) throws Exception {
+			URLConnection connection = (new URL(url)).openConnection();
+			
+			Thread.sleep(3000);
+			
+			connection.setRequestProperty("User-Agent", USER_AGENT);
+			
+			try (InputStream in = connection.getInputStream()) {
+				try (FileOutputStream out = new FileOutputStream(path)) {
+					final byte data[] = new byte[1024];
+			        int count;
+			        while ((count = in.read(data, 0, 1024)) != -1) {
+			        	out.write(data, 0, count);
+			        }
+				}
 			}
 		}
 	}
