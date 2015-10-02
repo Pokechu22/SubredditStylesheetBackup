@@ -541,7 +541,7 @@ public class BackupToolWindow {
 		private String query(String url) throws Exception {
 			URLConnection connection = (new URL(url)).openConnection();
 			
-			Thread.sleep(3000);
+			Thread.sleep(2000);
 			
 			connection.setRequestProperty("User-Agent", USER_AGENT);
 			
@@ -560,7 +560,7 @@ public class BackupToolWindow {
 		private void saveFile(String url, File path) throws Exception {
 			URLConnection connection = (new URL(url)).openConnection();
 			
-			Thread.sleep(3000);
+			Thread.sleep(2000);
 			
 			connection.setRequestProperty("User-Agent", USER_AGENT);
 			
