@@ -9,6 +9,8 @@ import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -25,6 +27,7 @@ import javax.swing.JTextField;
 import javax.swing.DropMode;
 import javax.swing.TransferHandler;
 import javax.swing.ListSelectionModel;
+import javax.swing.JCheckBox;
 
 public class BackupToolWindow {
 	/**
@@ -56,6 +59,7 @@ public class BackupToolWindow {
 	private JTextField textFieldCurrentSubreddit;
 	private JTextField textFieldAddSubreddit;
 	private JTextField textFieldSaveLocation;
+	private JCheckBox checkboxAutoAddDate;
 
 	private DefaultListModel<Subreddit> listModel;
 
@@ -83,10 +87,18 @@ public class BackupToolWindow {
 	}
 	
 	/**
+	 * Base directory in which to save data, without the date on it.
+	 */
+	private File datelessDirectory;
+	
+	/**
 	 * Base directory in which to save data.
 	 */
 	private File baseDirectory;
-
+	
+	private static final String START_DATE = (new SimpleDateFormat(
+			"yyyy-MM-dd_HH_mm_ssZ").format(new Date()));
+	
 	/**
 	 * Initialize the contents of the frame.
 	 */
@@ -197,10 +209,10 @@ public class BackupToolWindow {
 		JPanel panelMain = new JPanel();
 		splitPane.setRightComponent(panelMain);
 		GridBagLayout gbl_panelMain = new GridBagLayout();
-		gbl_panelMain.columnWidths = new int[] { 252, 0, 0 };
-		gbl_panelMain.rowHeights = new int[] { 0, 0, 0, 0, 0, 0, 0 };
-		gbl_panelMain.columnWeights = new double[] { 1.0, 0.0, Double.MIN_VALUE };
-		gbl_panelMain.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+		gbl_panelMain.columnWidths = new int[] {67, 0, 0};
+		gbl_panelMain.rowHeights = new int[] { 0, 0, 0, 0, 0, 0, 0, 0 };
+		gbl_panelMain.columnWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
+		gbl_panelMain.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 				Double.MIN_VALUE };
 		panelMain.setLayout(gbl_panelMain);
 
@@ -215,36 +227,67 @@ public class BackupToolWindow {
 		textFieldSaveLocation = new JTextField();
 		textFieldSaveLocation.setEditable(false);
 		GridBagConstraints gbc_textFieldSaveLocation = new GridBagConstraints();
-		gbc_textFieldSaveLocation.insets = new Insets(0, 0, 5, 5);
+		gbc_textFieldSaveLocation.gridwidth = 2;
+		gbc_textFieldSaveLocation.insets = new Insets(0, 0, 5, 0);
 		gbc_textFieldSaveLocation.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textFieldSaveLocation.gridx = 0;
 		gbc_textFieldSaveLocation.gridy = 1;
 		panelMain.add(textFieldSaveLocation, gbc_textFieldSaveLocation);
 		textFieldSaveLocation.setColumns(10);
-
-		JButton buttonBrowse = new JButton("Browse");
-		buttonBrowse.addActionListener(new ActionListener() {
+		
+				JButton buttonBrowse = new JButton("Browse");
+				buttonBrowse.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent arg0) {
+						//TODO: Check if changing the directory is safe.
+						
+						JFileChooser dialog = new JFileChooser();
+						dialog.setMultiSelectionEnabled(false);
+						dialog.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+						
+						int result = dialog.showSaveDialog(BackupToolWindow.this.frame);
+						
+						if (result != JFileChooser.APPROVE_OPTION) {
+							return;
+						}
+						
+						datelessDirectory = dialog.getSelectedFile();
+						if (checkboxAutoAddDate.isSelected()) {
+							baseDirectory = new File(datelessDirectory, START_DATE);
+						} else {
+							baseDirectory = datelessDirectory;
+						}
+						textFieldSaveLocation.setText(baseDirectory.getAbsolutePath());
+						textFieldAddSubreddit.setEditable(true);
+					}
+				});
+				GridBagConstraints gbc_buttonBrowse = new GridBagConstraints();
+				gbc_buttonBrowse.insets = new Insets(0, 0, 5, 5);
+				gbc_buttonBrowse.gridx = 0;
+				gbc_buttonBrowse.gridy = 2;
+				panelMain.add(buttonBrowse, gbc_buttonBrowse);
+		
+		checkboxAutoAddDate = new JCheckBox("Automatically add date");
+		checkboxAutoAddDate.setSelected(true);
+		checkboxAutoAddDate.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				JFileChooser dialog = new JFileChooser();
-				dialog.setMultiSelectionEnabled(false);
-				dialog.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				
-				int result = dialog.showSaveDialog(BackupToolWindow.this.frame);
-				
-				if (result != JFileChooser.APPROVE_OPTION) {
+				//TODO: Check if changing the directory is safe.
+				if (datelessDirectory == null) {
 					return;
 				}
-				
-				baseDirectory = dialog.getSelectedFile();
+				if (checkboxAutoAddDate.isSelected()) {
+					baseDirectory = new File(datelessDirectory, START_DATE);
+				} else {
+					baseDirectory = datelessDirectory;
+				}
 				textFieldSaveLocation.setText(baseDirectory.getAbsolutePath());
-				textFieldAddSubreddit.setEditable(true);
 			}
 		});
-		GridBagConstraints gbc_buttonBrowse = new GridBagConstraints();
-		gbc_buttonBrowse.insets = new Insets(0, 0, 5, 0);
-		gbc_buttonBrowse.gridx = 1;
-		gbc_buttonBrowse.gridy = 1;
-		panelMain.add(buttonBrowse, gbc_buttonBrowse);
+		GridBagConstraints gbc_checkboxAutoAddDate = new GridBagConstraints();
+		gbc_checkboxAutoAddDate.anchor = GridBagConstraints.WEST;
+		gbc_checkboxAutoAddDate.insets = new Insets(0, 0, 5, 0);
+		gbc_checkboxAutoAddDate.gridx = 1;
+		gbc_checkboxAutoAddDate.gridy = 2;
+		panelMain.add(checkboxAutoAddDate, gbc_checkboxAutoAddDate);
 
 		JSeparator separator3 = new JSeparator();
 		GridBagConstraints gbc_separator3 = new GridBagConstraints();
@@ -252,7 +295,7 @@ public class BackupToolWindow {
 		gbc_separator3.gridwidth = 2;
 		gbc_separator3.fill = GridBagConstraints.HORIZONTAL;
 		gbc_separator3.gridx = 0;
-		gbc_separator3.gridy = 2;
+		gbc_separator3.gridy = 3;
 		panelMain.add(separator3, gbc_separator3);
 
 		JLabel labelProgress = new JLabel("Progress");
@@ -260,7 +303,7 @@ public class BackupToolWindow {
 		gbc_labelProgress.insets = new Insets(0, 0, 5, 0);
 		gbc_labelProgress.gridwidth = 2;
 		gbc_labelProgress.gridx = 0;
-		gbc_labelProgress.gridy = 3;
+		gbc_labelProgress.gridy = 4;
 		panelMain.add(labelProgress, gbc_labelProgress);
 
 		JProgressBar progressBar = new JProgressBar();
@@ -271,15 +314,14 @@ public class BackupToolWindow {
 		gbc_progressBar.fill = GridBagConstraints.HORIZONTAL;
 		gbc_progressBar.gridwidth = 2;
 		gbc_progressBar.gridx = 0;
-		gbc_progressBar.gridy = 4;
+		gbc_progressBar.gridy = 5;
 		panelMain.add(progressBar, gbc_progressBar);
 
 		JSeparator separator4 = new JSeparator();
 		GridBagConstraints gbc_separator4 = new GridBagConstraints();
 		gbc_separator4.gridwidth = 2;
-		gbc_separator4.insets = new Insets(0, 0, 0, 5);
 		gbc_separator4.gridx = 0;
-		gbc_separator4.gridy = 5;
+		gbc_separator4.gridy = 6;
 		panelMain.add(separator4, gbc_separator4);
 	}
 
