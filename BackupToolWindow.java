@@ -27,6 +27,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JSeparator;
@@ -461,8 +462,9 @@ public class BackupToolWindow {
 			
 			//TODO: Thread safety would *probably* be good.
 			while (!listModel.isEmpty()) {
+				Subreddit subreddit = listModel.remove(0);
+				
 				try {
-					Subreddit subreddit = listModel.remove(0);
 					textFieldCurrentSubreddit.setText(subreddit.name);
 					
 					File folder = new File(baseDirectory, subreddit.name);
@@ -490,6 +492,13 @@ public class BackupToolWindow {
 						saveFile(url, file);
 					}
 				} catch (Exception e) {
+					JOptionPane.showMessageDialog(
+							frame,
+							"An error occured saving " + subreddit + ": "
+									+ e.toString() + "\nSkipping to next "
+									+ "subreddit, if it exists...",
+							"An error occured", JOptionPane.ERROR_MESSAGE);
+					
 					e.printStackTrace();
 				}
 			}
