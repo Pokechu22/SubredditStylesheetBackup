@@ -37,6 +37,7 @@ import javax.swing.DropMode;
 import javax.swing.TransferHandler;
 import javax.swing.ListSelectionModel;
 import javax.swing.JCheckBox;
+import javax.swing.UIManager;
 
 public class BackupToolWindow {
 	private static final String USER_AGENT = 
@@ -100,6 +101,12 @@ public class BackupToolWindow {
 	 * Create the application.
 	 */
 	public BackupToolWindow() {
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 		initialize();
 	}
 	
