@@ -142,6 +142,7 @@ public class BackupToolWindow {
 	 */
 	private void initialize() {
 		frame = new JFrame();
+		frame.setTitle("Subreddit backup tool by /u/pokechu22 - v1.0.0 - github.com/Pokechu22/SubredditStylesheetBackup");
 		frame.setBounds(100, 100, 450, 300);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
